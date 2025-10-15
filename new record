@@ -1,0 +1,547 @@
+import React, { useState } from ‘react’;
+import { Camera, Clock, TrendingUp, ClipboardList, BookOpen, ChevronRight, Upload, Calendar, MapPin, Check, X, Search, Play, FileText, AlertCircle } from ‘lucide-react’;
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from ‘recharts’;
+
+const WoundCareSystem = () => {
+const [currentView, setCurrentView] = useState(‘login’);
+const [userRole, setUserRole] = useState(null);
+const [loginData, setLoginData] = useState({ username: ‘’, password: ‘’ });
+const [selectedMenu, setSelectedMenu] = useState(null);
+const [selectedPatient, setSelectedPatient] = useState(null);
+const [uploadForm, setUploadForm] = useState({ date: ‘’, location: ‘’, notes: ‘’, image: null });
+
+const patients = [
+{
+id: 1,
+name: ‘張志成’,
+age: 55,
+occupation: ‘廚師’,
+woundType: ‘二度燒傷’,
+location: ‘右小腿下方’,
+length: 7,
+width: 4,
+depth: 1.5,
+status: ‘感染中’,
+severity: ‘medium’,
+lastUpdate: ‘2025-10-14’,
+notes: ‘因感染癒合緩慢，需密切監控’
+},
+{
+id: 2,
+name: ‘陳志偉’,
+age: 68,
+occupation: ‘退休司機’,
+woundType: ‘糖尿病足潰瘍’,
+location: ‘右腳小腿’,
+length: 5,
+width: 4,
+depth: 2,
+status: ‘反覆感染’,
+severity: ‘high’,
+lastUpdate: ‘2025-10-13’,
+notes: ‘長期反覆感染，需加強血糖控制’
+},
+{
+id: 3,
+name: ‘陳美鳳’,
+age: 67,
+occupation: ‘家管’,
+woundType: ‘手術傷口’,
+location: ‘腹部（膽囊手術）’,
+length: 5,
+width: 1,
+depth: 0,
+status: ‘癒合中’,
+severity: ‘low’,
+lastUpdate: ‘2025-10-15’,
+notes: ‘腹腔鏡膽囊手術後縫合傷口’
+},
+{
+id: 4,
+name: ‘林美雲’,
+age: 78,
+occupation: ‘長期臥床’,
+woundType: ‘第三期壓瘡’,
+location: ‘臀部’,
+length: 5,
+width: 5,
+depth: 3,
+status: ‘需密切照護’,
+severity: ‘high’,
+lastUpdate: ‘2025-10-14’,
+notes: ‘長期臥床導致壓瘡，需定時翻身’
+}
+];
+
+const [woundRecords] = useState([
+{ id: 1, date: ‘2025-10-14’, location: ‘右小腿下方’, size: 28, redness: 7, notes: ‘傷口周圍輕微紅腫，持續使用抗生素藥膏’ },
+{ id: 2, date: ‘2025-10-10’, location: ‘右小腿下方’, size: 29.5, redness: 8, notes: ‘感染狀況稍有改善’ },
+{ id: 3, date: ‘2025-10-07’, location: ‘右小腿下方’, size: 31, redness: 9, notes: ‘初次記錄，有明顯感染跡象’ }
+]);
+
+const [tasks, setTasks] = useState([
+{ id: 1, title: ‘更換敷料’, time: ‘08:00’, completed: false, urgent: true, patientId: 1 },
+{ id: 2, title: ‘清潔傷口’, time: ‘12:00’, completed: true, urgent: false, patientId: 1 },
+{ id: 3, title: ‘血糖監測’, time: ‘14:00’, completed: false, urgent: true, patientId: 2 },
+{ id: 4, title: ‘翻身檢查’, time: ‘16:00’, completed: false, urgent: true, patientId: 4 },
+{ id: 5, title: ‘傷口觀察’, time: ‘18:00’, completed: false, urgent: false, patientId: 3 }
+]);
+
+const healingData = [
+{ date: ‘10/07’, size: 31, redness: 9 },
+{ date: ‘10/10’, size: 29.5, redness: 8 },
+{ date: ‘10/14’, size: 28, redness: 7 },
+{ date: ‘10/17’, size: 26, redness: 6 },
+{ date: ‘10/20’, size: 24, redness: 5 }
+];
+
+const educationContent = [
+{ id: 1, type: ‘article’, title: ‘如何正確清潔傷口’, category: ‘基礎照護’, duration: ‘5分鐘閱讀’ },
+{ id: 2, type: ‘video’, title: ‘更換敷料步驟示範’, category: ‘操作指南’, duration: ‘3分鐘影片’ },
+{ id: 3, type: ‘article’, title: ‘糖尿病足照護要點’, category: ‘專科照護’, duration: ‘8分鐘閱讀’ },
+{ id: 4, type: ‘video’, title: ‘壓瘡預防與處理’, category: ‘專科照護’, duration: ‘6分鐘影片’ },
+{ id: 5, type: ‘faq’, title: ‘傷口感染的警訊’, category: ‘常見問題’, duration: ‘4分鐘閱讀’ },
+{ id: 6, type: ‘article’, title: ‘選擇適當的敷料類型’, category: ‘進階知識’, duration: ‘7分鐘閱讀’ }
+];
+
+const handleLogin = () => {
+if (loginData.username && loginData.password) {
+setCurrentView(‘patientList’);
+}
+};
+
+const toggleTask = (id) => {
+setTasks(tasks.map(task =>
+task.id === id ? { …task, completed: !task.completed } : task
+));
+};
+
+const getSeverityColor = (severity) => {
+switch(severity) {
+case ‘high’: return ‘from-red-500 to-rose-600’;
+case ‘medium’: return ‘from-amber-500 to-orange-500’;
+case ‘low’: return ‘from-emerald-500 to-teal-500’;
+default: return ‘from-slate-500 to-slate-600’;
+}
+};
+
+const getSeverityBadge = (severity) => {
+switch(severity) {
+case ‘high’: return ‘bg-red-100 text-red-700’;
+case ‘medium’: return ‘bg-amber-100 text-amber-700’;
+case ‘low’: return ‘bg-emerald-100 text-emerald-700’;
+default: return ‘bg-slate-100 text-slate-700’;
+}
+};
+
+if (currentView === ‘login’) {
+return (
+<div className="min-h-screen bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800 flex items-center justify-center p-4">
+<div className="w-full max-w-md">
+<div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+<div className="bg-gradient-to-r from-slate-700 to-slate-600 p-8 text-center">
+<div className="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center">
+<Camera className="w-10 h-10 text-slate-700" />
+</div>
+<h1 className="text-3xl font-bold text-white mb-2">傷口照護系統</h1>
+<p className="text-slate-200 text-sm">Wound Care Management</p>
+</div>
+
+```
+        <div className="p-8">
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">選擇身份</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setUserRole('family')}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                  userRole === 'family' 
+                    ? 'border-slate-600 bg-slate-50 shadow-md' 
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="text-3xl mb-2">👨‍👩‍👧</div>
+                <div className="font-semibold text-slate-700">家屬</div>
+              </button>
+              <button
+                onClick={() => setUserRole('medical')}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                  userRole === 'medical' 
+                    ? 'border-slate-600 bg-slate-50 shadow-md' 
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="text-3xl mb-2">👨‍⚕️</div>
+                <div className="font-semibold text-slate-700">醫護人員</div>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">帳號</label>
+              <input
+                type="text"
+                value={loginData.username}
+                onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-slate-600 focus:outline-none transition-colors"
+                placeholder="請輸入帳號"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">密碼</label>
+              <input
+                type="password"
+                value={loginData.password}
+                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-slate-600 focus:outline-none transition-colors"
+                placeholder="請輸入密碼"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogin}
+            disabled={!userRole || !loginData.username || !loginData.password}
+            className="w-full bg-gradient-to-r from-slate-700 to-slate-600 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            登入系統
+          </button>
+
+          <div className="mt-6 text-center text-sm text-slate-500">
+            <a href="#" className="hover:text-slate-700 transition-colors">忘記密碼？</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+if (currentView === ‘patientList’) {
+return (
+<div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+<div className="bg-gradient-to-r from-slate-700 to-slate-600 text-white p-6 shadow-lg">
+<div className="max-w-6xl mx-auto">
+<div className="flex items-center justify-between">
+<div>
+<h1 className="text-2xl font-bold mb-1">個案管理中心</h1>
+<p className="text-slate-200 text-sm">Patient Management Center</p>
+</div>
+<button
+onClick={() => setCurrentView(‘login’)}
+className=“bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors text-sm”
+>
+登出
+</button>
+</div>
+</div>
+</div>
+
+```
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold mb-2">今日照護概況</h2>
+              <p className="text-blue-100 text-sm">目前管理 {patients.length} 位個案，{tasks.filter(t => !t.completed).length} 項待完成任務</p>
+            </div>
+            <ClipboardList className="w-12 h-12 text-white opacity-30" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {patients.map((patient) => (
+          <button
+            key={patient.id}
+            onClick={() => {
+              setSelectedPatient(patient);
+              setCurrentView('dashboard');
+            }}
+            className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-left group"
+          >
+            <div className="flex items-start gap-4 mb-4">
+              <div className={`w-16 h-16 bg-gradient-to-br ${getSeverityColor(patient.severity)} rounded-2xl flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform`}>
+                {patient.name.charAt(0)}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800">{patient.name}</h3>
+                    <p className="text-sm text-slate-500">{patient.age}歲 · {patient.occupation}</p>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-semibold text-slate-700">傷口類型：</span>
+                <span className="text-slate-600">{patient.woundType}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-semibold text-slate-700">位置：</span>
+                <span className="text-slate-600">{patient.location}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-semibold text-slate-700">尺寸：</span>
+                <span className="text-slate-600">
+                  {patient.length}×{patient.width}
+                  {patient.depth > 0 && `×${patient.depth}`} cm
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getSeverityBadge(patient.severity)}`}>
+                {patient.status}
+              </span>
+              <span className="text-xs text-slate-500">更新於 {patient.lastUpdate}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+if (currentView === ‘dashboard’ && selectedPatient && !selectedMenu) {
+return (
+<div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+<div className="bg-gradient-to-r from-slate-700 to-slate-600 text-white p-6 shadow-lg">
+<div className="max-w-6xl mx-auto">
+<div className="flex items-center justify-between">
+<div className="flex items-center gap-4">
+<button
+onClick={() => setCurrentView(‘patientList’)}
+className=“hover:bg-white/20 p-2 rounded-lg transition-colors”
+>
+<ChevronRight className="w-6 h-6 rotate-180" />
+</button>
+<div>
+<h1 className="text-2xl font-bold mb-1">{selectedPatient.name} 的照護中心</h1>
+<p className="text-slate-200 text-sm">{selectedPatient.age}歲 · {selectedPatient.occupation}</p>
+</div>
+</div>
+<button
+onClick={() => setCurrentView(‘login’)}
+className=“bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors text-sm”
+>
+登出
+</button>
+</div>
+</div>
+</div>
+
+```
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+        <div className={`bg-gradient-to-r ${getSeverityColor(selectedPatient.severity)} rounded-2xl p-6 text-white shadow-lg`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h2 className="text-xl font-bold mb-2">{selectedPatient.woundType}</h2>
+              <p className="text-white/90 text-sm mb-3">{selectedPatient.location}</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                  {selectedPatient.length}×{selectedPatient.width}
+                  {selectedPatient.depth > 0 && `×${selectedPatient.depth}`} cm
+                </span>
+                <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                  {selectedPatient.status}
+                </span>
+              </div>
+            </div>
+            <AlertCircle className="w-12 h-12 text-white opacity-30" />
+          </div>
+          <p className="text-white/80 text-sm">{selectedPatient.notes}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button
+          onClick={() => setSelectedMenu('upload')}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-left group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Camera className="w-7 h-7 text-white" />
+            </div>
+            <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-1">新傷口上傳</h3>
+          <p className="text-sm text-slate-500">拍照記錄傷口狀況</p>
+        </button>
+
+        <button
+          onClick={() => setSelectedMenu('records')}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-left group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <FileText className="w-7 h-7 text-white" />
+            </div>
+            <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-1">查看傷口記錄</h3>
+          <p className="text-sm text-slate-500">瀏覽歷史照護紀錄</p>
+        </button>
+
+        <button
+          onClick={() => setSelectedMenu('chart')}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-left group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-7 h-7 text-white" />
+            </div>
+            <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-1">癒合追蹤圖表</h3>
+          <p className="text-sm text-slate-500">查看康復進度趨勢</p>
+        </button>
+
+        <button
+          onClick={() => setSelectedMenu('tasks')}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-left group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-rose-500 to-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ClipboardList className="w-7 h-7 text-white" />
+            </div>
+            <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-1">照護任務清單</h3>
+          <p className="text-sm text-slate-500">管理每日照護事項</p>
+        </button>
+
+        <button
+          onClick={() => setSelectedMenu('education')}
+          className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-left group md:col-span-2"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <BookOpen className="w-7 h-7 text-white" />
+            </div>
+            <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-1">衛教小天地</h3>
+          <p className="text-sm text-slate-500">學習傷口照護知識與技巧</p>
+        </button>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+if (selectedMenu === ‘upload’) {
+return (
+<div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+<div className="bg-gradient-to-r from-slate-700 to-slate-600 text-white p-6 shadow-lg">
+<div className="max-w-4xl mx-auto flex items-center">
+<button onClick={() => setSelectedMenu(null)} className=“mr-4 hover:bg-white/20 p-2 rounded-lg transition-colors”>
+<ChevronRight className="w-6 h-6 rotate-180" />
+</button>
+<div>
+<h1 className="text-2xl font-bold">{selectedPatient.name} - 新傷口上傳</h1>
+<p className="text-slate-200 text-sm">Upload New Wound Record</p>
+</div>
+</div>
+</div>
+
+```
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-slate-700 mb-3">傷口照片</label>
+          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-12 text-center hover:border-slate-400 transition-colors cursor-pointer">
+            <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-600 font-semibold mb-2">點擊上傳或拖曳照片</p>
+            <p className="text-slate-400 text-sm">支援 JPG PNG 格式</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">拍攝日期</label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="date"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-slate-600 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">傷口部位</label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                defaultValue={selectedPatient.location}
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-slate-600 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <label className="block text-sm font-semibold text-slate-700 mb-2">備註說明</label>
+          <textarea
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-slate-600 focus:outline-none resize-none"
+            rows="4"
+            placeholder="記錄傷口狀況、疼痛程度或其他注意事項..."
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => setSelectedMenu(null)}
+            className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold hover:bg-slate-300 transition-colors"
+          >
+            取消
+          </button>
+          <button
+            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
+            確認上傳
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+```
+
+}
+
+if (selectedMenu === ‘records’) {
+return (
+<div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+<div className="bg-gradient-to-r from-slate-700 to-slate-600 text-white p-6 shadow-lg">
+<div className="max-w-4xl mx-auto flex items-center">
+<button onClick={() => setSelectedMenu(null)} className=“mr-4 hover:bg-white/20 p-2 rounded-lg transition-colors”>
+<ChevronRight className="w-6 h-6 rotate-180" />
+</button>
+<div>
+<h1 className="text-2xl font-bold">{selectedPatient.name} - 傷口記錄</h1>
+<p className="text-slate-200 text-sm">Wound Records History</p>
+</div>
+</div>
+</div>
+
+```
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="space-y-4">
+        {woundRecords.
+```
